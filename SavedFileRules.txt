@@ -1,0 +1,3 @@
+R1 : IF (Orden=3(¿Cuál es el orden?)) THEN  Triángulo
+R2
+R3

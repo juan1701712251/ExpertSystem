@@ -5,12 +5,18 @@
  */
 package expertsystemapp;
 
+import expertsystem.HumanInterface;
+import expertsystem.IFact;
+import expertsystem.Motor;
+import expertsystem.Rule;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
@@ -21,15 +27,16 @@ import javax.swing.JOptionPane;
  *
  * @author GOMEZ
  */
-public class MainForm extends javax.swing.JFrame {
+public class MainForm extends javax.swing.JFrame implements HumanInterface{
     
     private ArrayList<String> storeStringRules; 
-    
+    Motor motor;
     /**
      * Creates new form MainForm
      */
     public MainForm() {
         storeStringRules = new ArrayList<>();
+        motor = new Motor(this);
         initComponents();
     }
 
@@ -52,6 +59,9 @@ public class MainForm extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JSeparator();
         btnClearRules = new javax.swing.JButton();
         btnSaveFile = new javax.swing.JButton();
+        btnStart = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        txtResults = new javax.swing.JTextArea();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -93,13 +103,29 @@ public class MainForm extends javax.swing.JFrame {
             }
         });
 
+        btnStart.setText("Start");
+        btnStart.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStartActionPerformed(evt);
+            }
+        });
+
+        txtResults.setColumns(20);
+        txtResults.setRows(5);
+        jScrollPane3.setViewportView(txtResults);
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(0, 304, Short.MAX_VALUE)
+                .addComponent(jLabel2)
+                .addGap(331, 331, 331))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnStart, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1)
                     .addComponent(jSeparator1)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
@@ -111,14 +137,14 @@ public class MainForm extends javax.swing.JFrame {
                             .addComponent(btnAddFromFileRules, javax.swing.GroupLayout.DEFAULT_SIZE, 339, Short.MAX_VALUE)
                             .addComponent(btnClearRules, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(jLabel2)
-                .addGap(331, 331, 331))
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(323, 323, 323)
+                .addGap(308, 308, 308)
                 .addComponent(jLabel3)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane3)
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -137,9 +163,13 @@ public class MainForm extends javax.swing.JFrame {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 126, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel3)
-                .addGap(124, 124, 124))
+                .addGap(18, 18, 18)
+                .addComponent(btnStart, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         jLabel1.setFont(new java.awt.Font("Unispace", 0, 24)); // NOI18N
@@ -177,11 +207,13 @@ public class MainForm extends javax.swing.JFrame {
             return;
         }
         this.storeStringRules.add(strRule);
+        this.motor.addRule(strRule);
         this.fillListRules();
         this.btnAddManuallyRulesActionPerformed(evt);
     }//GEN-LAST:event_btnAddManuallyRulesActionPerformed
 
     private void btnAddFromFileRulesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFromFileRulesActionPerformed
+      motor = new Motor(this);
       File fichero = null;
       FileReader fr = null;
       BufferedReader br = null;
@@ -203,9 +235,11 @@ public class MainForm extends javax.swing.JFrame {
 
          // Lectura del fichero
          String linea;
-         while((linea=br.readLine())!=null)
+         while((linea=br.readLine())!=null){
             this.storeStringRules.add(linea);
-        this.fillListRules();
+            this.motor.addRule(linea);
+         }
+         this.fillListRules();
       }
       catch(Exception e){
          e.printStackTrace();
@@ -240,6 +274,16 @@ public class MainForm extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error saving file");
         }
     }//GEN-LAST:event_btnSaveFileActionPerformed
+
+    private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
+        if(storeStringRules.size() > 0){
+            this.txtResults.setText("");
+            motor.solve();
+            
+        }else{
+            JOptionPane.showMessageDialog(null, "You need to enter the rules");
+        }
+    }//GEN-LAST:event_btnStartActionPerformed
 
     /**
      * @param args the command line arguments
@@ -281,13 +325,16 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JButton btnAddManuallyRules;
     private javax.swing.JButton btnClearRules;
     private javax.swing.JButton btnSaveFile;
+    private javax.swing.JButton btnStart;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JList<String> lstRules;
+    private javax.swing.JTextArea txtResults;
     // End of variables declaration//GEN-END:variables
 
 
@@ -300,5 +347,55 @@ public class MainForm extends javax.swing.JFrame {
             index++;
         }
         lstRules.setModel(model);
+    }
+
+    @Override
+    public int askIntValue(String question) {
+        int response;
+        try{
+            int IntValue = Integer.parseInt(JOptionPane.showInputDialog(this,question));  
+            response = IntValue;
+        }catch(NumberFormatException ex){
+            response = 0;
+        }
+        this.txtResults.append(question + " " + Integer.toString(response) + "\n");
+        return response;
+    }
+
+    @Override
+    public boolean askBoolValue(String question) {
+        boolean response;
+        try{
+            String stringResponse = JOptionPane.showInputDialog(this,question);
+            response =  stringResponse.equals("si");
+        }catch (NumberFormatException ex){
+            response = false;
+        } 
+        
+        this.txtResults.append(question + " " + String.valueOf(response) + "\n");
+        return response;
+    }
+
+    @Override
+    public void printFacts(List<IFact> facts) {
+        
+        String res = "\n \n------------ Solución(s) encontrada(s) ------------\n";
+        Collections.sort(facts, (IFact f1, IFact f2) -> {
+            return Integer.compare(f2.getLevel(), f1.getLevel());
+        });
+        for (IFact f : facts) {
+            if (f.getLevel() != 0) {
+               res += f.toString() + "\n";
+            }
+        }
+       
+        this.txtResults.append(res);
+    }
+
+    @Override
+    public void printRules(List<Rule> list) {
+        for (Rule rule : list) {
+            System.out.println(rule.toString() + " \n");
+        }
     }
 }
